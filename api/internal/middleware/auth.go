@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"context"
+	"fmt"
 	"cromia/api/internal/db"
 	"cromia/api/internal/security"
 	"net/http"
@@ -10,20 +11,19 @@ import (
 	"time"
 )
 
-// contextKey é um tipo privado para evitar colisão de chaves no context.
 type contextKey string
 
 const APIKeyContextKey contextKey = "apiKey"
+const UserContextKey contextKey = "user"
 
-// Cache de autenticação para evitar Argon2 pesado em cada request
 var authCache sync.Map
 
 type cachedAuth struct {
 	key    db.APIKey
+	user   db.User
 	expiry time.Time
 }
 
-// AuthMiddleware valida o token Bearer contra os hashes Argon2id do banco de dados.
 func AuthMiddleware(database db.DB, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		authHeader := r.Header.Get("Authorization")
@@ -32,33 +32,36 @@ func AuthMiddleware(database db.DB, next http.Handler) http.Handler {
 			return
 		}
 
-		rawKey := strings.TrimPrefix(authHeader, "Bearer ")
+		rawKey := strings.TrimSpace(strings.TrimPrefix(authHeader, "Bearer "))
 		if rawKey == "" {
 			http.Error(w, `{"error":"empty token"}`, http.StatusUnauthorized)
 			return
 		}
 
-		// 1. Tenta buscar no cache primeiro
 		if val, ok := authCache.Load(rawKey); ok {
 			c := val.(cachedAuth)
 			if time.Now().Before(c.expiry) {
 				ctx := context.WithValue(r.Context(), APIKeyContextKey, &c.key)
+				ctx = context.WithValue(ctx, UserContextKey, &c.user)
 				next.ServeHTTP(w, r.WithContext(ctx))
 				return
 			}
 			authCache.Delete(rawKey)
 		}
 
-		// 2. Busca no banco e valida via Argon2 (pesado)
 		activeKeys, err := database.GetActiveKeys()
 		if err != nil {
 			http.Error(w, `{"error":"internal server error"}`, http.StatusInternalServerError)
 			return
 		}
+		fmt.Printf("Found %d active keys\n", len(activeKeys))
 
 		var matchedKey *db.APIKey
 		for i := range activeKeys {
 			ok, err := security.CompareAPIKey(rawKey, activeKeys[i].KeyHash)
+			if err != nil {
+				fmt.Printf("Compare error: %v (rawKey len: %d, hash len: %d)\n", err, len(rawKey), len(activeKeys[i].KeyHash))
+			}
 			if err == nil && ok {
 				matchedKey = &activeKeys[i]
 				break
@@ -70,14 +73,20 @@ func AuthMiddleware(database db.DB, next http.Handler) http.Handler {
 			return
 		}
 
-		// 3. Salva no cache por 5 minutos
+		user, err := database.GetUserByID(matchedKey.UserID)
+		if err != nil || user == nil {
+			http.Error(w, `{"error":"user not found"}`, http.StatusUnauthorized)
+			return
+		}
+
 		authCache.Store(rawKey, cachedAuth{
 			key:    *matchedKey,
-			expiry: time.Now().Add(5 * time.Minute),
+			user:   *user,
+			expiry: time.Now().Add(1 * time.Minute),
 		})
 
-		// Injeta a APIKey autenticada no context
 		ctx := context.WithValue(r.Context(), APIKeyContextKey, matchedKey)
+		ctx = context.WithValue(ctx, UserContextKey, user)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }

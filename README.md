@@ -1,69 +1,60 @@
-# Crom IA API - Documentação
+# CromIA API Gateway
 
-A **Crom IA API** é uma API de inteligência artificial de alta performance, compatível com o formato da OpenAI, desenvolvida em Go com processamento de modelos via Python embutido.
+A **CromIA API** é um poderoso API Gateway focado em faturamento (billing), compatível com o formato OpenAI. Ela atua como um roteador e proxy para provedores de LLM como **DeepSeek** e **OpenRouter**, descontando créditos dos usuários em tempo real baseado no consumo exato de tokens.
+
+Todo o projeto é construído em Go, compilado para um único binário que contém o servidor API, a interface de linha de comando (CLI) para administração e o Dashboard Web.
 
 ---
 
 ## 🚀 Como Executar
 
-1. **Configurar Variáveis de Ambiente (`.env`):**
-   Crie um arquivo `.env` na raiz do projeto com as seguintes configurações:
-   ```env
-   MASTER_API_KEY=crom_sk_master_secret_123456
-   DB_DRIVER=sqlite3
-   DB_DSN=data.db
-   PYTHON_WORKERS=2
-   ```
+### 1. Compilar o Binário
+```bash
+go build -o cromia api/cmd/server/main.go
+```
 
-2. **Iniciar o Servidor:**
-   ```bash
-   export $(grep -v '^#' .env | xargs)
-   make run
-   ```
+### 2. Configurar Variáveis de Ambiente (`.env`)
+```env
+# Porta padrão para o comando "serve"
+PORT=8080
 
----
+# Chaves de Integração (Provedores)
+DEEPSEEK_API_KEY=sk-suachavedeepseek
+OPENROUTER_API_KEY=sk-or-v1-suachaveopenrouter
+```
 
-## 🔐 Endpoints
-
-### 1. Gerar API Key (Admin)
-Utilize este endpoint para gerar chaves de acesso para consumidores da API.
-
-- **URL:** `/v1/keys/generate`
-- **Método:** `POST`
-- **Headers:** `Authorization: Bearer <MASTER_API_KEY>`
-- **Body:**
-  ```json
-  {
-    "name": "nome-do-cliente"
-  }
-  ```
-
-### 2. Chat Completions (OpenAI Compatible)
-Endpoint principal para inferência de texto.
-
-- **URL:** `/v1/chat/completions`
-- **Método:** `POST`
-- **Headers:** `Authorization: Bearer <crom_sk_...>`
-- **Body:**
-  ```json
-  {
-    "model": "crom-1",
-    "messages": [
-      {"role": "user", "content": "Olá, quem é você?"}
-    ]
-  }
-  ```
+### 3. Iniciar o Servidor
+```bash
+./cromia serve
+```
 
 ---
 
-## 🏗️ Estrutura de Segurança
-- **API Keys:** Armazenadas como hashes (Argon2id).
-- **Master Key:** Utilizada exclusivamente para a administração (criação) de novas chaves de acesso.
-- **Worker Pool:** O Go gerencia um pool de instâncias Python para evitar contenção do GIL.
+## 🛠️ Interface de Linha de Comando (CLI)
+
+O binário `cromia` atua como ferramenta de gestão local. **Não é necessário editar o banco de dados manualmente.**
+
+- `cromia users create --username joao --password senha123`
+- `cromia users add-credits --user joao --amount 5000`
+- `cromia keys generate --user joao --name "App Principal"`
+- `cromia models enable --provider deepseek --model deepseek-chat --multiplier 1.5`
+
+Para mais comandos e detalhes, verifique a documentação do CLI: [docs/CLI.md](docs/CLI.md).
 
 ---
 
-## 🛠️ Desenvolvimento
-- **Adicionar Dependências:** Use `go get`.
-- **Compilar:** `make build`.
-- **Testar:** `make test`.
+## 🌐 Dashboard Web Embutido
+
+Acesse `http://localhost:8080/` para visualizar o Dashboard Web embutido.
+Os usuários finais podem fazer login com as credenciais criadas pelo administrador via CLI, ver seu saldo e histórico de uso.
+
+---
+
+## 📚 Documentação Adicional
+
+Acesse a pasta `docs/` para ver as especificações arquiteturais:
+- [Arquitetura](docs/ARCHITECTURE.md)
+- [Banco de Dados](docs/DATABASE.md)
+- [Sistema de Faturamento](docs/BILLING.md)
+- [Referência do CLI](docs/CLI.md)
+- [Interface Web](docs/WEB.md)

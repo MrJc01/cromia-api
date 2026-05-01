@@ -34,12 +34,7 @@ func RateLimitMiddleware(next http.Handler) http.Handler {
 			return
 		}
 
-		limit := apiKey.RateLimit
-		if limit <= 0 {
-			// No limit if 0 or less
-			next.ServeHTTP(w, r)
-			return
-		}
+		limit := 60 // Default limit
 
 		allowed, remaining := globalLimiter.allow(apiKey.ID, limit)
 

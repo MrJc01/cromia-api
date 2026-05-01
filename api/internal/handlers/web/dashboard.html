@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CromIA Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-gray-900 text-white min-h-screen">
+    <nav class="border-b border-gray-800 bg-gray-900/50 backdrop-blur-xl sticky top-0 z-50">
+        <div class="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
+            <div class="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-emerald-400">CromIA Dashboard</div>
+            <a href="/logout" class="text-sm text-gray-400 hover:text-white transition-colors">Sair</a>
+        </div>
+    </nav>
+
+    <main class="max-w-6xl mx-auto px-4 py-12">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <!-- Balance Card -->
+            <div class="col-span-1 md:col-span-2 bg-gray-800 rounded-2xl p-6 border border-gray-700/50 shadow-xl relative overflow-hidden group">
+                <div class="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-emerald-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                <h2 class="text-gray-400 font-semibold mb-2">Créditos Disponíveis</h2>
+                <div class="text-5xl font-extrabold flex items-baseline gap-2">
+                    <span id="balance">---</span>
+                    <span class="text-sm text-gray-500 font-normal tracking-wide uppercase">Croms</span>
+                </div>
+                <p class="text-xs text-gray-500 mt-4">Os créditos são deduzidos automaticamente por cada token processado.</p>
+            </div>
+
+            <!-- Profile Info -->
+            <div class="col-span-1 bg-gray-800 rounded-2xl p-6 border border-gray-700/50 shadow-xl">
+                <h2 class="text-gray-400 font-semibold mb-4">Sua Conta</h2>
+                <div class="space-y-4">
+                    <div>
+                        <div class="text-xs text-gray-500 uppercase">Usuário</div>
+                        <div class="font-medium text-lg" id="username">---</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-8 bg-gray-800 rounded-2xl p-6 border border-gray-700/50 shadow-xl">
+            <h2 class="text-gray-400 font-semibold mb-6 flex items-center justify-between">
+                <span>Chaves de API</span>
+                <span class="text-xs bg-gray-700 px-3 py-1 rounded-full text-gray-300">Gere novas chaves via CLI</span>
+            </h2>
+            
+            <div class="bg-gray-900/50 rounded-xl p-6 text-center border border-gray-700 border-dashed">
+                <p class="text-gray-400 mb-2">As chaves de acesso são gerenciadas pelo administrador.</p>
+                <code class="text-xs text-blue-400">cromia keys generate --user <span id="cli_username">username</span> --name "Meu App"</code>
+            </div>
+        </div>
+
+        <!-- Usage Logs Table -->
+        <div class="mt-8 bg-gray-800 rounded-2xl p-6 border border-gray-700/50 shadow-xl overflow-hidden">
+            <h2 class="text-gray-400 font-semibold mb-6">Fatura Detalhada (Histórico de Consumo)</h2>
+            
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="text-xs text-gray-500 uppercase border-b border-gray-700">
+                            <th class="pb-3 font-medium">Data/Hora</th>
+                            <th class="pb-3 font-medium">Modelo</th>
+                            <th class="pb-3 font-medium text-right">Tokens Prompt</th>
+                            <th class="pb-3 font-medium text-right">Tokens Saída</th>
+                            <th class="pb-3 font-medium text-right">Custo Deduzido (Croms)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="usage_table_body" class="text-sm divide-y divide-gray-800/50">
+                        <!-- Populated via JS -->
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Empty State -->
+            <div id="usage_empty_state" class="hidden text-center py-10">
+                <p class="text-gray-500 text-sm">Nenhum consumo registrado ainda. Faça sua primeira requisição à API!</p>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Fetch User Info
+        fetch('/v1/admin/me')
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById('balance').textContent = parseFloat(data.balance).toFixed(4);
+                document.getElementById('username').textContent = data.username;
+                document.getElementById('cli_username').textContent = data.username;
+            })
+            .catch(err => {
+                console.error('Erro ao carregar dados:', err);
+                document.getElementById('balance').textContent = 'Erro';
+            });
+
+        // Fetch Usage Logs
+        fetch('/v1/admin/usage')
+            .then(res => res.json())
+            .then(resData => {
+                const logs = resData.data;
+                const tbody = document.getElementById('usage_table_body');
+                const emptyState = document.getElementById('usage_empty_state');
+                
+                if (!logs || logs.length === 0) {
+                    emptyState.classList.remove('hidden');
+                    return;
+                }
+
+                logs.forEach(log => {
+                    const tr = document.createElement('tr');
+                    tr.className = 'hover:bg-gray-800/80 transition-colors';
+                    
+                    const dateObj = new Date(log.created_at);
+                    const formattedDate = dateObj.toLocaleString('pt-BR');
+
+                    // Highlight cost in red
+                    const costColor = log.cost_deducted > 0 ? 'text-red-400 font-semibold' : 'text-gray-300';
+
+                    tr.innerHTML = `
+                        <td class="py-4 text-gray-400 whitespace-nowrap">${formattedDate}</td>
+                        <td class="py-4"><span class="bg-gray-900 border border-gray-700 px-2 py-1 rounded text-xs font-mono text-emerald-400">${log.model_used}</span></td>
+                        <td class="py-4 text-right text-gray-300">${log.prompt_tokens}</td>
+                        <td class="py-4 text-right text-gray-300">${log.completion_tokens}</td>
+                        <td class="py-4 text-right ${costColor}">-${parseFloat(log.cost_deducted).toFixed(5)} C</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            })
+            .catch(err => {
+                console.error('Erro ao carregar histórico:', err);
+            });
+    </script>
+</body>
+</html>
