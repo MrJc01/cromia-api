@@ -13,7 +13,7 @@ run:
 	./bin/$(BINARY_NAME)
 
 clean:
-	rm -rf bin/
+	rm -rf bin/ cromia mockserver test_data.db* test_*.log cromia.pid cromia.log
 
 test:
 	go test ./...

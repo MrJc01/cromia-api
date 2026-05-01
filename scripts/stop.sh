@@ -1,6 +1,8 @@
 #!/bin/bash
 # stop.sh - Para o CromIA rodando em background
 
+cd "$(dirname "$0")/.."
+
 if [ -f cromia.pid ]; then
     PID=$(cat cromia.pid)
     echo "🛑 Parando o CromIA (PID: $PID)..."

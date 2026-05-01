@@ -1,9 +1,11 @@
 #!/bin/bash
 # start.sh - Inicia o CromIA em background
 
+cd "$(dirname "$0")/.."
+
 if [ -f cromia.pid ]; then
     echo "⚠️ O arquivo cromia.pid já existe. O servidor já está rodando?"
-    echo "Para forçar, use ./stop.sh primeiro."
+    echo "Para forçar, use ./scripts/stop.sh primeiro."
     exit 1
 fi
 
