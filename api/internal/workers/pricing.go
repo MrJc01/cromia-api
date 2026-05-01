@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"strconv"
 	"strings"
 
@@ -29,7 +30,12 @@ type ORResponse struct {
 func SyncPricing(database db.DB) error {
 	log.Println("[PricingWorker] Fetching pricing from OpenRouter API...")
 	
-	resp, err := http.Get("https://openrouter.ai/api/v1/models")
+	openRouterURL := os.Getenv("OPENROUTER_BASE_URL")
+	if openRouterURL == "" {
+		openRouterURL = "https://openrouter.ai/api/v1"
+	}
+
+	resp, err := http.Get(openRouterURL + "/models")
 	if err != nil {
 		return fmt.Errorf("failed to fetch from openrouter: %w", err)
 	}

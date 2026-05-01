@@ -209,6 +209,7 @@ __marimo__/
 # server binaries
 bin
 cromia
+mockserver
 
 # server DB
 data.db
@@ -220,4 +221,5 @@ test_data.db
 test_data.db-shm
 test_data.db-wal
 test_server.log
+test_mockserver.log
 tests/endpoints_log.md

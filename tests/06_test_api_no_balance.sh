@@ -2,7 +2,7 @@
 set -e
 echo "-> Test: Teste de Saldo Insuficiente"
 # Remove o saldo do usuário para testar
-./cromia users remove-credits --user testuser --amount 600 > /dev/null 2>&1 || true
+./cromia users remove-credits --user testuser --amount 600
 
 HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" -X POST http://localhost:8080/v1/chat/completions \
   -H "Authorization: Bearer $API_KEY" \
@@ -17,3 +17,6 @@ if [ "$HTTP_STATUS" == "402" ]; then
 else
     echo "   Falhou! API retornou $HTTP_STATUS em vez de 402."
 fi
+
+# Restaura o saldo para testes subsequentes
+./cromia users add-credits --user testuser --amount 600 > /dev/null 2>&1 || true

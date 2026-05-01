@@ -53,7 +53,9 @@ func RunServe(args []string) {
 	// API Routes
 	chatPipe := middleware.AuthMiddleware(database,
 		middleware.RateLimitMiddleware(
-			http.HandlerFunc(chatHandler.Completions),
+			middleware.BillingMiddleware(database,
+				http.HandlerFunc(chatHandler.Completions),
+			),
 		),
 	)
 	mux.Handle("POST /v1/chat/completions", chatPipe)

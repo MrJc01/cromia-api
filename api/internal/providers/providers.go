@@ -6,10 +6,18 @@ import (
 
 func GetProviderURLAndKey(providerName string) (string, string) {
 	if providerName == "deepseek" {
-		return "https://api.deepseek.com/chat/completions", os.Getenv("DEEPSEEK_API_KEY")
+		url := os.Getenv("DEEPSEEK_BASE_URL")
+		if url == "" {
+			url = "https://api.deepseek.com"
+		}
+		return url + "/chat/completions", os.Getenv("DEEPSEEK_API_KEY")
 	}
 	if providerName == "openrouter" {
-		return "https://openrouter.ai/api/v1/chat/completions", os.Getenv("OPENROUTER_API_KEY")
+		url := os.Getenv("OPENROUTER_BASE_URL")
+		if url == "" {
+			url = "https://openrouter.ai/api/v1"
+		}
+		return url + "/chat/completions", os.Getenv("OPENROUTER_API_KEY")
 	}
 	return "", ""
 }
