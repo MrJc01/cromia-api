@@ -1,29 +1,223 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CromIA Gateway</title>
+    <title>CromIA | Soberania Digital</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Fira+Code&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Inter', sans-serif; }
+        .glass-panel {
+            background: rgba(17, 24, 39, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
     </style>
 </head>
-<body class="bg-gray-900 text-white flex items-center justify-center h-screen">
-    <div class="bg-gray-800 p-8 rounded-xl shadow-2xl w-96 text-center border border-gray-700">
-        <h1 class="text-3xl font-extrabold mb-2 text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400">CromIA API</h1>
-        <p class="text-sm text-gray-400 mb-8">O Portal de Modelos Inteligentes</p>
-        
-        <form action="/login" method="POST" class="space-y-4">
-            <div>
-                <input type="text" name="username" placeholder="Usuário" required class="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500 text-white placeholder-gray-400">
+<body class="bg-[#0a0a0a] text-white min-h-screen flex flex-col relative selection:bg-blue-500/30 selection:text-blue-200">
+    <!-- Navigation -->
+    <nav class="glass-panel sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-6 py-4 flex flex-wrap justify-between items-center gap-4">
+            <div class="flex items-center gap-4">
+                <div class="text-2xl font-extrabold tracking-tighter">
+                    CROM.ME
+                </div>
+                <div class="px-2 py-0.5 rounded text-[10px] font-bold tracking-widest uppercase bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                    PROTOCOLO ATIVO
+                </div>
             </div>
-            <div>
-                <input type="password" name="password" placeholder="Senha" required class="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500 text-white placeholder-gray-400">
+            <div class="flex items-center gap-6 text-sm font-medium">
+                <a href="#sobre" class="text-gray-400 hover:text-white transition-colors hidden sm:block">Manifesto</a>
+                <a href="#ecossistema" class="text-gray-400 hover:text-white transition-colors hidden sm:block">Ecossistema</a>
+                <a href="/docs" class="text-gray-400 hover:text-white transition-colors">Docs</a>
+                <a href="/login" class="bg-white hover:bg-gray-200 text-black px-5 py-2 rounded-full transition-all font-semibold">Membros</a>
             </div>
-            <button type="submit" class="w-full py-3 bg-blue-600 hover:bg-blue-700 rounded-lg font-semibold transition-colors duration-200">Entrar</button>
-        </form>
-    </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <main class="flex-grow flex flex-col relative z-10">
+        <!-- Section 1: Hero -->
+        <section class="min-h-[85vh] flex flex-col items-center justify-center text-center px-6 py-20 relative overflow-hidden">
+            <div class="absolute top-[20%] left-[20%] w-[40vw] h-[40vw] bg-blue-600/10 rounded-full blur-[120px] pointer-events-none"></div>
+            
+            <h1 class="text-6xl md:text-8xl font-extrabold mb-6 tracking-tighter leading-none">
+                Soberania<br />
+                <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400">Digital</span>
+            </h1>
+            
+            <p class="text-xl md:text-2xl text-gray-400 mb-10 max-w-3xl leading-relaxed font-light">
+                A CROM é um ecossistema de desenvolvimento independente no Brasil. Construímos ferramentas open source, formamos comunidade e defendemos que cada dev deve ser root da própria existência.
+            </p>
+            
+            <div class="flex flex-col sm:flex-row gap-4">
+                <a href="#sobre" class="px-8 py-4 bg-gray-900 border border-gray-800 text-white rounded-full font-semibold text-lg hover:bg-gray-800 transition-colors flex items-center justify-center gap-2">
+                    Conhecer a CROM <span>→</span>
+                </a>
+                <a href="#membro" class="px-8 py-4 text-gray-400 hover:text-white rounded-full font-semibold text-lg transition-colors flex items-center justify-center gap-2">
+                    Quero ser membro
+                </a>
+            </div>
+            
+            <div class="absolute bottom-10 left-1/2 -translate-x-1/2 text-gray-600 text-sm animate-pulse flex flex-col items-center gap-2">
+                <span>↓ scroll</span>
+            </div>
+        </section>
+
+        <!-- Section 2: Sobre & Manifesto -->
+        <section id="sobre" class="py-24 px-6 border-t border-gray-900 bg-[#0d0d0d]">
+            <div class="max-w-4xl mx-auto">
+                <div class="text-xs font-bold tracking-widest uppercase text-blue-500 mb-8">SOBRE</div>
+                
+                <h2 class="text-4xl md:text-5xl font-bold mb-12">A Alquimia do Código</h2>
+                
+                <p class="text-xl text-gray-400 leading-relaxed mb-16">
+                    A CROM não é uma empresa de software. É um protocolo organizacional inspirado na estrutura horizontal da Valve, na resiliência do Bitcoin e no modelo colaborativo da Linux Foundation. Aqui, o poder não reside em cargos — reside no histórico de contribuição auditável.
+                </p>
+
+                <blockquote class="border-l-4 border-emerald-500 pl-6 mb-16 italic text-2xl text-gray-300">
+                    "Não caminhamos para a obsolescência humana, mas para a hipertrofia cognitiva assistida. O código é o nosso novo lobo frontal."
+                    <footer class="text-sm font-medium text-gray-500 mt-4 not-italic">— Juan Cândido, Fundador</footer>
+                </blockquote>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
+                    <div>
+                        <h3 class="text-xl font-bold text-white mb-3 font-mono">0x0 · Protopia</h3>
+                        <p class="text-gray-400 leading-relaxed">Rejeitamos utopias estáticas. Abraçamos ser 1% melhor a cada ciclo. Cada linha de código é uma refatoração da realidade.</p>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-bold text-white mb-3 font-mono">0x1 · Alquimia do Bit</h3>
+                        <p class="text-gray-400 leading-relaxed">Transformamos conhecimento livre em soberania individual. O código aberto é a nossa pedra filosofal.</p>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-bold text-white mb-3 font-mono">0x2 · Local-First</h3>
+                        <p class="text-gray-400 leading-relaxed">Se você aluga sua inteligência de corporações, é inquilino da própria mente. Execute seus modelos, possua seu hardware.</p>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-bold text-white mb-3 font-mono">0x3 · Infraestrutura Soberana</h3>
+                        <p class="text-gray-400 leading-relaxed">O open source não é caridade — é infraestrutura estratégica de qualquer nação que pretenda sobreviver ao séc. XXI.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 3: Ecossistema -->
+        <section id="ecossistema" class="py-24 px-6 border-t border-gray-900 bg-[#0a0a0a]">
+            <div class="max-w-6xl mx-auto">
+                <div class="text-xs font-bold tracking-widest uppercase text-emerald-500 mb-8">ECOSSISTEMA</div>
+                
+                <h2 class="text-4xl font-bold mb-4">Ferramentas para autonomia</h2>
+                <p class="text-xl text-gray-400 mb-16 max-w-2xl">Projetos open source construídos pela comunidade, para a comunidade.</p>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <!-- Card 1 -->
+                    <div class="bg-gray-900/50 border border-gray-800 p-8 rounded-2xl hover:border-gray-700 transition-colors group">
+                        <div class="text-3xl mb-4">🚀</div>
+                        <div class="flex items-center justify-between mb-2">
+                            <h3 class="text-xl font-bold">CROM.RUN</h3>
+                            <span class="text-[10px] uppercase font-bold text-emerald-400 tracking-wider">● ATIVO</span>
+                        </div>
+                        <p class="text-gray-400 text-sm leading-relaxed mb-6">Portal principal — comunidade, laboratório, blog, ferramentas, miniapps. O centro do ecossistema.</p>
+                        <a href="https://crom.run" class="text-sm font-semibold text-blue-400 group-hover:text-blue-300 transition-colors">Acessar portal →</a>
+                    </div>
+                    <!-- Card 2 -->
+                    <div class="bg-gray-900/50 border border-gray-800 p-8 rounded-2xl hover:border-gray-700 transition-colors group">
+                        <div class="text-3xl mb-4">🖥️</div>
+                        <div class="flex items-center justify-between mb-2">
+                            <h3 class="text-xl font-bold">Workspace</h3>
+                            <span class="text-[10px] uppercase font-bold text-blue-400 tracking-wider">● MEMBROS</span>
+                        </div>
+                        <p class="text-gray-400 text-sm leading-relaxed mb-6">Membros têm acesso SSH ao servidor com ferramentas dedicadas e infraestrutura para projetos pessoais.</p>
+                        <a href="/login" class="text-sm font-semibold text-blue-400 group-hover:text-blue-300 transition-colors">Acessar painel →</a>
+                    </div>
+                    <!-- Card 3 -->
+                    <div class="bg-gray-900/50 border border-gray-800 p-8 rounded-2xl hover:border-gray-700 transition-colors group">
+                        <div class="text-3xl mb-4">⚡</div>
+                        <div class="flex items-center justify-between mb-2">
+                            <h3 class="text-xl font-bold">Open Source</h3>
+                            <span class="text-[10px] uppercase font-bold text-gray-400 tracking-wider">● GITHUB</span>
+                        </div>
+                        <p class="text-gray-400 text-sm leading-relaxed mb-6">Crompressor, P2PFile, Verbo, Ferramentas, Imagem Acompanhada — código aberto e auditável no GitHub.</p>
+                        <a href="https://github.com/MrJc01" class="text-sm font-semibold text-blue-400 group-hover:text-blue-300 transition-colors">Ver repositórios →</a>
+                    </div>
+                </div>
+
+                <div class="mt-16 w-full text-left bg-black rounded-xl border border-gray-800 shadow-2xl overflow-hidden font-mono text-sm">
+                    <div class="px-4 py-3 border-b border-gray-800 bg-gray-900 flex items-center gap-2">
+                        <div class="w-3 h-3 rounded-full bg-gray-600"></div>
+                        <span class="ml-2 text-xs text-gray-500">crom — ecosystem</span>
+                    </div>
+                    <div class="p-6 text-gray-300 leading-relaxed">
+                        <span class="text-green-400">$</span> crom status --ecosystem<br>
+                        <span class="text-gray-500">Verificando infraestrutura...</span><br><br>
+                        crom.run ........... <span class="text-emerald-400">● online</span><br>
+                        crom.me ............ <span class="text-emerald-400">● online</span><br>
+                        workspace .......... <span class="text-blue-400">● ativo</span><br>
+                        membros ............ <span class="text-emerald-400">● aceitando</span><br><br>
+                        <span class="text-green-400">$</span> echo "Domine o Fogo Digital."<br>
+                        Domine o Fogo Digital.
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 4: Call to Action -->
+        <section id="membro" class="py-24 px-6 border-t border-gray-900 bg-[#0d0d0d]">
+            <div class="max-w-3xl mx-auto text-center">
+                <div class="text-xs font-bold tracking-widest uppercase text-blue-500 mb-8">CONVOCAÇÃO</div>
+                <h2 class="text-4xl font-bold mb-6">Quero ser Membro</h2>
+                <p class="text-xl text-gray-400 mb-12 leading-relaxed">
+                    Junte-se a devs, hackers e pensadores independentes. Receba acesso SSH ao servidor, ferramentas de workspace e faça parte da construção.
+                </p>
+
+                <div class="bg-gray-900 border border-gray-800 p-8 rounded-2xl mb-12">
+                    <p class="text-gray-300 mb-4">Envie um e-mail com seu nome, GitHub (se tiver) e por que quer participar.</p>
+                    <a href="mailto:mrj.crom@gmail.com" class="text-2xl font-bold text-white hover:text-blue-400 transition-colors break-all">📧 mrj.crom@gmail.com</a>
+                </div>
+
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-6 text-left">
+                    <div>
+                        <div class="text-2xl font-bold text-gray-700 mb-2 font-mono">01</div>
+                        <div class="font-bold mb-1">Envie o e-mail</div>
+                        <div class="text-sm text-gray-500">com seu interesse e perfil</div>
+                    </div>
+                    <div>
+                        <div class="text-2xl font-bold text-gray-700 mb-2 font-mono">02</div>
+                        <div class="font-bold mb-1">Análise</div>
+                        <div class="text-sm text-gray-500">avaliamos seu perfil e alinhamento</div>
+                    </div>
+                    <div>
+                        <div class="text-2xl font-bold text-gray-700 mb-2 font-mono">03</div>
+                        <div class="font-bold mb-1">Credenciais</div>
+                        <div class="text-sm text-gray-500">receba acesso SSH + documentação</div>
+                    </div>
+                    <div>
+                        <div class="text-2xl font-bold text-gray-700 mb-2 font-mono">04</div>
+                        <div class="font-bold mb-1">Construa</div>
+                        <div class="text-sm text-gray-500">crie projetos, contribua, evolua</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-gray-900 bg-black py-12 px-6">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
+            <div class="text-gray-500 text-sm font-medium">
+                CROM COLLECTIVE
+            </div>
+            <div class="flex gap-6 text-sm font-medium">
+                <a href="#sobre" class="text-gray-600 hover:text-gray-300">Manifesto</a>
+                <a href="#ecossistema" class="text-gray-600 hover:text-gray-300">Missão</a>
+                <a href="/docs" class="text-gray-600 hover:text-gray-300">Documentação</a>
+            </div>
+        </div>
+        <div class="max-w-7xl mx-auto mt-8 text-center md:text-left text-xs text-gray-700">
+            &copy; CROM 2026 · Sem rastreadores · Sem bloatware · Apenas protocolo puro
+        </div>
+    </footer>
 </body>
 </html>

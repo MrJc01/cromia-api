@@ -41,3 +41,26 @@ func (d *sqlDB) RevokeKey(id int) error {
 	_, err := d.conn.Exec("UPDATE api_keys SET revoked_at = CURRENT_TIMESTAMP WHERE id = ?", id)
 	return err
 }
+
+func (d *sqlDB) GetUserKeys(userID int) ([]APIKey, error) {
+	rows, err := d.conn.Query(`
+		SELECT id, user_id, name, key_hash, created_at 
+		FROM api_keys 
+		WHERE user_id = ? AND revoked_at IS NULL
+	`, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var keys []APIKey
+	for rows.Next() {
+		var ak APIKey
+		if err := rows.Scan(&ak.ID, &ak.UserID, &ak.Name, &ak.KeyHash, &ak.CreatedAt); err != nil {
+			log.Printf("[DB] Error scanning APIKey for user %d: %v", userID, err)
+			continue
+		}
+		keys = append(keys, ak)
+	}
+	return keys, nil
+}

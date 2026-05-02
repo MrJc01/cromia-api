@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Docs | CromIA API</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        code { font-family: 'Fira Code', monospace; }
+        .glass-panel {
+            background: rgba(17, 24, 39, 0.9);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+    </style>
+</head>
+<body class="bg-[#0a0a0a] text-gray-300 min-h-screen">
+    
+    <nav class="glass-panel sticky top-0 z-50">
+        <div class="max-w-4xl mx-auto px-6 py-4 flex justify-between items-center">
+            <div class="text-xl font-bold tracking-tight text-white flex items-center gap-2">
+                <a href="/" class="hover:text-blue-400 transition-colors">CROM.ME</a>
+                <span class="text-gray-600">/</span>
+                <span class="text-gray-400 font-medium text-lg">Docs</span>
+            </div>
+            <a href="/login" class="text-sm font-medium bg-white text-black hover:bg-gray-200 px-4 py-2 rounded-lg transition-colors">Painel do Membro</a>
+        </div>
+    </nav>
+
+    <main class="max-w-4xl mx-auto px-6 py-16">
+        
+        <header class="mb-16">
+            <h1 class="text-4xl font-extrabold mb-4 text-white">Documentação da API</h1>
+            <p class="text-xl text-gray-400 leading-relaxed">
+                O CromIA foi desenhado para ser um <strong>Drop-in Replacement da OpenAI</strong>. Isso significa que você não precisa aprender nenhuma biblioteca nova. Basta trocar a URL Base e a sua Chave de API nos SDKs oficiais.
+            </p>
+        </header>
+
+        <section class="mb-16">
+            <h2 class="text-2xl font-bold mb-6 text-white border-b border-gray-800 pb-2">1. Endpoints Básicos</h2>
+            
+            <div class="bg-[#0d1117] border border-gray-800 rounded-xl overflow-hidden mb-6">
+                <div class="flex items-center px-4 py-2 border-b border-gray-800 bg-gray-900/50">
+                    <span class="text-xs font-bold bg-blue-500/20 text-blue-400 px-2 py-1 rounded mr-3">POST</span>
+                    <code class="text-sm text-gray-300">https://cromia-api.crom.me/v1/chat/completions</code>
+                </div>
+                <div class="p-6">
+                    <p class="text-sm text-gray-400 mb-4">Gera uma resposta de modelo de linguagem baseada no array de mensagens enviado. Compatível com a rota oficial da OpenAI.</p>
+                </div>
+            </div>
+
+            <div class="bg-[#0d1117] border border-gray-800 rounded-xl overflow-hidden mb-6">
+                <div class="flex items-center px-4 py-2 border-b border-gray-800 bg-gray-900/50">
+                    <span class="text-xs font-bold bg-emerald-500/20 text-emerald-400 px-2 py-1 rounded mr-3">GET</span>
+                    <code class="text-sm text-gray-300">https://cromia-api.crom.me/v1/models</code>
+                </div>
+                <div class="p-6">
+                    <p class="text-sm text-gray-400 mb-4">Lista os modelos atualmente ativos na infraestrutura CROM e que podem ser consumidos por você.</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="mb-16">
+            <h2 class="text-2xl font-bold mb-6 text-white border-b border-gray-800 pb-2">2. Autenticação (Headers)</h2>
+            <p class="text-gray-400 mb-6 leading-relaxed">
+                Todas as chamadas à API precisam de autenticação via Bearer Token. A chave deve ser gerada no seu <a href="/login" class="text-blue-400 hover:underline">Dashboard</a>.
+            </p>
+            <div class="bg-[#0d1117] border border-gray-800 rounded-xl p-4 overflow-x-auto">
+                <pre class="text-sm"><code class="text-blue-300">Authorization: <span class="text-emerald-300">Bearer crom_sk_...</span>
+Content-Type: <span class="text-emerald-300">application/json</span></code></pre>
+            </div>
+        </section>
+
+        <section class="mb-16">
+            <h2 class="text-2xl font-bold mb-6 text-white border-b border-gray-800 pb-2">3. Exemplo Prático (cURL)</h2>
+            <div class="bg-[#0d1117] border border-gray-800 rounded-xl overflow-hidden">
+                <div class="flex gap-2 px-4 py-3 border-b border-gray-800 bg-gray-900/50">
+                    <div class="w-3 h-3 rounded-full bg-red-500/80"></div>
+                    <div class="w-3 h-3 rounded-full bg-yellow-500/80"></div>
+                    <div class="w-3 h-3 rounded-full bg-green-500/80"></div>
+                </div>
+                <div class="p-6 overflow-x-auto text-sm leading-relaxed">
+<pre><code><span class="text-green-400">curl</span> https://cromia-api.crom.me/v1/chat/completions \
+  -H <span class="text-yellow-300">"Content-Type: application/json"</span> \
+  -H <span class="text-yellow-300">"Authorization: Bearer $CROM_API_KEY"</span> \
+  -d <span class="text-blue-300">'{
+    "model": "gpt-4o-mini",
+    "messages": [
+      {
+        "role": "system",
+        "content": "Você é um assistente prestativo."
+      },
+      {
+        "role": "user",
+        "content": "Qual é a velocidade de andorinha sem carga?"
+      }
+    ]
+  }'</span></code></pre>
+                </div>
+            </div>
+        </section>
+
+        <section class="mb-16">
+            <h2 class="text-2xl font-bold mb-6 text-white border-b border-gray-800 pb-2">4. Como Participar</h2>
+            <div class="bg-gray-900 border border-gray-800 p-8 rounded-2xl">
+                <p class="text-gray-300 mb-6 leading-relaxed">
+                    O CromIA é o gateway de inteligência artificial construído para centralizar e simplificar o acesso a LLMs para projetos da comunidade CROM. O acesso é exclusivo e mediante aprovação.
+                </p>
+                <div class="bg-gray-950 p-6 rounded-xl border border-gray-800">
+                    <p class="text-sm text-gray-500 uppercase tracking-wide font-bold mb-2">Solicitar Afiliação</p>
+                    <p class="text-gray-300">
+                        Envie um e-mail para: 
+                        <a href="mailto:mrj.crom@gmail.com" class="text-emerald-400 hover:text-emerald-300 font-bold ml-1">mrj.crom@gmail.com</a>
+                    </p>
+                </div>
+            </div>
+        </section>
+
+    </main>
+    
+    <footer class="border-t border-gray-800/50 py-8 text-center text-sm text-gray-600 bg-[#0a0a0a]">
+        <p>&copy; CROM. Construído por e para engenheiros de elite.</p>
+    </footer>
+</body>
+</html>

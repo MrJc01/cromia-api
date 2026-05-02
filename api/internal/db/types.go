@@ -1,20 +1,20 @@
 package db
 
 type User struct {
-	ID           int
-	Username     string
-	PasswordHash string
-	Balance      float64
-	CreatedAt    string
+	ID           int     `json:"id"`
+	Username     string  `json:"username"`
+	PasswordHash string  `json:"-"`
+	Balance      float64 `json:"balance"`
+	CreatedAt    string  `json:"created_at"`
 }
 
 type APIKey struct {
-	ID        int
-	UserID    int
-	Name      string
-	KeyHash   string
-	CreatedAt string
-	RevokedAt *string
+	ID        int     `json:"id"`
+	UserID    int     `json:"user_id"`
+	Name      string  `json:"name"`
+	KeyHash   string  `json:"key_hash"`
+	CreatedAt string  `json:"created_at"`
+	RevokedAt *string `json:"revoked_at"`
 }
 
 type ProviderModel struct {
@@ -45,6 +45,7 @@ type DB interface {
 	CreateUser(username, passwordHash string, initialBalance float64) (int, error)
 	GetUserByUsername(username string) (*User, error)
 	GetUserByID(id int) (*User, error)
+	UpdatePassword(userID int, newPasswordHash string) error
 	AddBalance(userID int, amount float64) error
 	DeductBalance(userID int, amount float64) error
 	ListUsers() ([]User, error)
@@ -52,6 +53,7 @@ type DB interface {
 	// API Keys
 	CreateKey(userID int, name, keyHash string) (int, error)
 	GetActiveKeys() ([]APIKey, error)
+	GetUserKeys(userID int) ([]APIKey, error)
 	RevokeKey(id int) error
 
 	// Provider Models

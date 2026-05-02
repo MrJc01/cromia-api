@@ -36,6 +36,11 @@ func (d *sqlDB) GetUserByID(id int) (*User, error) {
 	return &u, nil
 }
 
+func (d *sqlDB) UpdatePassword(userID int, newPasswordHash string) error {
+	_, err := d.conn.Exec("UPDATE users SET password_hash = ? WHERE id = ?", newPasswordHash, userID)
+	return err
+}
+
 func (d *sqlDB) AddBalance(userID int, amount float64) error {
 	_, err := d.conn.Exec("UPDATE users SET balance = balance + ? WHERE id = ?", amount, userID)
 	return err
