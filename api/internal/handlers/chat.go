@@ -6,6 +6,7 @@ import (
 	"cromia/api/internal/db"
 	"cromia/api/internal/middleware"
 	"cromia/api/internal/providers"
+	"cromia/api/internal/utils"
 	"encoding/json"
 	"io"
 	"log"
@@ -31,30 +32,30 @@ type openaiUsage struct {
 
 func (h *ChatHandler) Completions(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
-		http.Error(w, `{"error":"method not allowed"}`, http.StatusMethodNotAllowed)
+		utils.JSONError(w, "method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
 
 	bodyBytes, err := io.ReadAll(http.MaxBytesReader(w, r.Body, 1<<20))
 	if err != nil {
-		http.Error(w, `{"error":"payload too large"}`, http.StatusBadRequest)
+		utils.JSONError(w, "payload too large", http.StatusBadRequest)
 		return
 	}
 
 	var req chatRequest
 	if err := json.Unmarshal(bodyBytes, &req); err != nil {
-		http.Error(w, `{"error":"bad request"}`, http.StatusBadRequest)
+		utils.JSONError(w, "bad request", http.StatusBadRequest)
 		return
 	}
 
 	if req.Model == "" {
-		http.Error(w, `{"error":"model field required"}`, http.StatusBadRequest)
+		utils.JSONError(w, "model field required", http.StatusBadRequest)
 		return
 	}
 
 	activeModels, err := h.DB.GetActiveModels()
 	if err != nil {
-		http.Error(w, `{"error":"internal server error"}`, http.StatusInternalServerError)
+		utils.JSONError(w, "internal server error", http.StatusInternalServerError)
 		return
 	}
 
@@ -67,19 +68,19 @@ func (h *ChatHandler) Completions(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if matchedModel == nil {
-		http.Error(w, `{"error":"model not supported or inactive"}`, http.StatusBadRequest)
+		utils.JSONError(w, "model not supported or inactive", http.StatusBadRequest)
 		return
 	}
 
 	providerURL, providerKey := providers.GetProviderURLAndKey(matchedModel.ProviderName)
 	if providerURL == "" || providerKey == "" {
-		http.Error(w, `{"error":"provider not configured properly"}`, http.StatusInternalServerError)
+		utils.JSONError(w, "provider not configured properly", http.StatusInternalServerError)
 		return
 	}
 
 	proxyReq, err := http.NewRequest("POST", providerURL, bytes.NewBuffer(bodyBytes))
 	if err != nil {
-		http.Error(w, `{"error":"failed to create upstream request"}`, http.StatusInternalServerError)
+		utils.JSONError(w, "failed to create upstream request", http.StatusInternalServerError)
 		return
 	}
 	proxyReq.Header.Set("Authorization", "Bearer "+providerKey)
@@ -89,7 +90,7 @@ func (h *ChatHandler) Completions(w http.ResponseWriter, r *http.Request) {
 	client := &http.Client{}
 	resp, err := client.Do(proxyReq)
 	if err != nil {
-		http.Error(w, `{"error":"upstream provider error"}`, http.StatusBadGateway)
+		utils.JSONError(w, "upstream provider error", http.StatusBadGateway)
 		return
 	}
 	defer resp.Body.Close()
@@ -114,7 +115,7 @@ func (h *ChatHandler) Completions(w http.ResponseWriter, r *http.Request) {
 	// Stream proxy mode
 	flusher, ok := w.(http.Flusher)
 	if !ok {
-		http.Error(w, `{"error":"streaming unsupported"}`, http.StatusInternalServerError)
+		utils.JSONError(w, "streaming unsupported", http.StatusInternalServerError)
 		return
 	}
 

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"cromia/api/internal/db"
 	"cromia/api/internal/security"
+	"cromia/api/internal/utils"
 	"net/http"
 	"strings"
 	"sync"
@@ -28,13 +29,13 @@ func AuthMiddleware(database db.DB, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		authHeader := r.Header.Get("Authorization")
 		if authHeader == "" || !strings.HasPrefix(authHeader, "Bearer ") {
-			http.Error(w, `{"error":"missing or invalid Authorization header"}`, http.StatusUnauthorized)
+			utils.JSONError(w, "missing or invalid Authorization header", http.StatusUnauthorized)
 			return
 		}
 
 		rawKey := strings.TrimSpace(strings.TrimPrefix(authHeader, "Bearer "))
 		if rawKey == "" {
-			http.Error(w, `{"error":"empty token"}`, http.StatusUnauthorized)
+			utils.JSONError(w, "empty token", http.StatusUnauthorized)
 			return
 		}
 
@@ -51,7 +52,7 @@ func AuthMiddleware(database db.DB, next http.Handler) http.Handler {
 
 		activeKeys, err := database.GetActiveKeys()
 		if err != nil {
-			http.Error(w, `{"error":"internal server error"}`, http.StatusInternalServerError)
+			utils.JSONError(w, "internal server error", http.StatusInternalServerError)
 			return
 		}
 		fmt.Printf("Found %d active keys\n", len(activeKeys))
@@ -69,13 +70,13 @@ func AuthMiddleware(database db.DB, next http.Handler) http.Handler {
 		}
 
 		if matchedKey == nil {
-			http.Error(w, `{"error":"invalid API key"}`, http.StatusUnauthorized)
+			utils.JSONError(w, "invalid API key", http.StatusUnauthorized)
 			return
 		}
 
 		user, err := database.GetUserByID(matchedKey.UserID)
 		if err != nil || user == nil {
-			http.Error(w, `{"error":"user not found"}`, http.StatusUnauthorized)
+			utils.JSONError(w, "user not found", http.StatusUnauthorized)
 			return
 		}
 

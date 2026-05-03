@@ -6,6 +6,7 @@ import (
 	"sync"
 	"time"
 	"cromia/api/internal/db"
+	"cromia/api/internal/utils"
 )
 
 type rateLimiter struct {
@@ -30,7 +31,7 @@ func RateLimitMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		apiKey, ok := r.Context().Value(APIKeyContextKey).(*db.APIKey)
 		if !ok {
-			http.Error(w, `{"error":"unauthorized"}`, http.StatusUnauthorized)
+			utils.JSONError(w, "unauthorized", http.StatusUnauthorized)
 			return
 		}
 
@@ -44,7 +45,7 @@ func RateLimitMiddleware(next http.Handler) http.Handler {
 		if !allowed {
 			w.Header().Set("Retry-After", "60")
 			w.Header().Set("X-RateLimit-Remaining", "0")
-			http.Error(w, `{"error":"rate limit exceeded"}`, http.StatusTooManyRequests)
+			utils.JSONError(w, "rate limit exceeded", http.StatusTooManyRequests)
 			return
 		}
 
