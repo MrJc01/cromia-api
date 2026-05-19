@@ -2,7 +2,6 @@ package middleware
 
 import (
 	"context"
-	"fmt"
 	"cromia/api/internal/db"
 	"cromia/api/internal/security"
 	"cromia/api/internal/utils"
@@ -50,23 +49,11 @@ func AuthMiddleware(database db.DB, next http.Handler) http.Handler {
 			authCache.Delete(rawKey)
 		}
 
-		activeKeys, err := database.GetActiveKeys()
+		hashedKey, _ := security.HashAPIKey(rawKey)
+		matchedKey, err := database.GetKeyByHash(hashedKey)
 		if err != nil {
 			utils.JSONError(w, "internal server error", http.StatusInternalServerError)
 			return
-		}
-		fmt.Printf("Found %d active keys\n", len(activeKeys))
-
-		var matchedKey *db.APIKey
-		for i := range activeKeys {
-			ok, err := security.CompareAPIKey(rawKey, activeKeys[i].KeyHash)
-			if err != nil {
-				fmt.Printf("Compare error: %v (rawKey len: %d, hash len: %d)\n", err, len(rawKey), len(activeKeys[i].KeyHash))
-			}
-			if err == nil && ok {
-				matchedKey = &activeKeys[i]
-				break
-			}
 		}
 
 		if matchedKey == nil {

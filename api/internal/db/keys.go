@@ -1,6 +1,9 @@
 package db
 
-import "log"
+import (
+	"database/sql"
+	"log"
+)
 
 func (d *sqlDB) CreateKey(userID int, name, keyHash string) (int, error) {
 	result, err := d.conn.Exec(
@@ -63,4 +66,25 @@ func (d *sqlDB) GetUserKeys(userID int) ([]APIKey, error) {
 		keys = append(keys, ak)
 	}
 	return keys, nil
+}
+
+func (d *sqlDB) GetKeyByHash(keyHash string) (*APIKey, error) {
+	row := d.conn.QueryRow(`
+		SELECT id, user_id, name, key_hash, created_at, revoked_at
+		FROM api_keys
+		WHERE key_hash = ? AND revoked_at IS NULL
+	`, keyHash)
+
+	var ak APIKey
+	var revokedAt sql.NullString
+	if err := row.Scan(&ak.ID, &ak.UserID, &ak.Name, &ak.KeyHash, &ak.CreatedAt, &revokedAt); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil // Not found
+		}
+		return nil, err
+	}
+	if revokedAt.Valid {
+		ak.RevokedAt = &revokedAt.String
+	}
+	return &ak, nil
 }

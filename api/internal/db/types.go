@@ -54,6 +54,7 @@ type DB interface {
 	CreateKey(userID int, name, keyHash string) (int, error)
 	GetActiveKeys() ([]APIKey, error)
 	GetUserKeys(userID int) ([]APIKey, error)
+	GetKeyByHash(keyHash string) (*APIKey, error)
 	RevokeKey(id int) error
 
 	// Provider Models

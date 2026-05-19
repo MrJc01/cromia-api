@@ -3,17 +3,21 @@ package security
 import (
 	"crypto/rand"
 	"encoding/base64"
+	"crypto/sha256"
+	"crypto/subtle"
+	"encoding/hex"
 	"golang.org/x/crypto/bcrypt"
 )
 
 func HashAPIKey(key string) (string, error) {
-	bytes, err := bcrypt.GenerateFromPassword([]byte(key), bcrypt.DefaultCost)
-	return string(bytes), err
+	hash := sha256.Sum256([]byte(key))
+	return hex.EncodeToString(hash[:]), nil
 }
 
 func CompareAPIKey(key, hash string) (bool, error) {
-	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(key))
-	return err == nil, err
+	expectedHash := sha256.Sum256([]byte(key))
+	expectedHashHex := hex.EncodeToString(expectedHash[:])
+	return subtle.ConstantTimeCompare([]byte(hash), []byte(expectedHashHex)) == 1, nil
 }
 
 func GenerateRandomString(n int) string {
@@ -29,5 +33,6 @@ func GenerateAPIKey() (string, string, error) {
 }
 
 func HashPassword(password string) (string, error) {
-	return HashAPIKey(password)
+	bytes, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	return string(bytes), err
 }
