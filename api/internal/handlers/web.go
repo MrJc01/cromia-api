@@ -114,7 +114,7 @@ func (h *WebHandler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	match, err := security.CompareAPIKey(password, u.PasswordHash)
+	match, err := security.ComparePassword(password, u.PasswordHash)
 	if err != nil || !match {
 		http.Error(w, "Invalid credentials", 401)
 		return
@@ -357,7 +357,7 @@ func (h *WebHandler) APIAdminPassword(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Verifica se a senha atual confere
-	match, err := security.CompareAPIKey(req.CurrentPassword, u.PasswordHash)
+	match, err := security.ComparePassword(req.CurrentPassword, u.PasswordHash)
 	if err != nil || !match {
 		http.Error(w, "Invalid current password", 403)
 		return
