@@ -55,6 +55,7 @@ func RunServe(args []string) {
 	mux.HandleFunc("POST /v1/admin/keys", webHandler.APIAdminKeysCreate)
 	mux.HandleFunc("DELETE /v1/admin/keys/{id}", webHandler.APIAdminKeysRevoke)
 	mux.HandleFunc("POST /v1/admin/password", webHandler.APIAdminPassword)
+	mux.HandleFunc("POST /v1/auth/login", webHandler.APIRESTLogin)
 
 	// API Routes
 	chatPipe := middleware.AuthMiddleware(database,
@@ -99,7 +100,7 @@ func RunServe(args []string) {
 		fmt.Fprintf(w, `{"status":"ok","version":"1.2.0"}`)
 	})
 
-	mainHandler := middleware.LoggingMiddleware(mux)
+	mainHandler := middleware.CORSMiddleware(middleware.LoggingMiddleware(mux))
 
 	// Separation logic placeholder
 	if *apiPort != "" && *webPort != "" {

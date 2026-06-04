@@ -48,6 +48,29 @@ func verifyCookie(cookieValue string) (int, bool) {
 	return 0, false
 }
 
+func (h *WebHandler) authenticateUser(r *http.Request) (int, bool) {
+	// 1. Try checking the session cookie
+	if cookie, err := r.Cookie("session"); err == nil && cookie.Value != "" {
+		if userID, ok := verifyCookie(cookie.Value); ok {
+			return userID, true
+		}
+	}
+
+	// 2. Try checking Authorization header
+	authHeader := r.Header.Get("Authorization")
+	if authHeader != "" && strings.HasPrefix(authHeader, "Bearer ") {
+		token := strings.TrimSpace(strings.TrimPrefix(authHeader, "Bearer "))
+		if token != "" {
+			if userID, ok := verifyCookie(token); ok {
+				return userID, true
+			}
+		}
+	}
+
+	return 0, false
+}
+
+
 func (h *WebHandler) ServeHome(w http.ResponseWriter, r *http.Request) {
 	content, err := webFS.ReadFile("web/index.html")
 	if err != nil {
@@ -143,14 +166,11 @@ func (h *WebHandler) Logout(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *WebHandler) APIAdminMe(w http.ResponseWriter, r *http.Request) {
-	cookie, err := r.Cookie("session")
-	if err != nil {
-		http.Error(w, "Unauthorized", 401)
-		return
-	}
-	userID, ok := verifyCookie(cookie.Value)
+	userID, ok := h.authenticateUser(r)
 	if !ok {
-		http.Error(w, "Unauthorized", 401)
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusUnauthorized)
+		w.Write([]byte(`{"error":"Unauthorized"}`))
 		return
 	}
 
@@ -170,14 +190,11 @@ func (h *WebHandler) APIAdminMe(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *WebHandler) APIAdminUsage(w http.ResponseWriter, r *http.Request) {
-	cookie, err := r.Cookie("session")
-	if err != nil {
-		http.Error(w, "Unauthorized", 401)
-		return
-	}
-	userID, ok := verifyCookie(cookie.Value)
+	userID, ok := h.authenticateUser(r)
 	if !ok {
-		http.Error(w, "Unauthorized", 401)
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusUnauthorized)
+		w.Write([]byte(`{"error":"Unauthorized"}`))
 		return
 	}
 
@@ -197,14 +214,11 @@ func (h *WebHandler) APIAdminUsage(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *WebHandler) APIAdminKeysList(w http.ResponseWriter, r *http.Request) {
-	cookie, err := r.Cookie("session")
-	if err != nil {
-		http.Error(w, "Unauthorized", 401)
-		return
-	}
-	userID, ok := verifyCookie(cookie.Value)
+	userID, ok := h.authenticateUser(r)
 	if !ok {
-		http.Error(w, "Unauthorized", 401)
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusUnauthorized)
+		w.Write([]byte(`{"error":"Unauthorized"}`))
 		return
 	}
 
@@ -228,14 +242,11 @@ func (h *WebHandler) APIAdminKeysCreate(w http.ResponseWriter, r *http.Request) 
 		http.Error(w, "Method not allowed", 405)
 		return
 	}
-	cookie, err := r.Cookie("session")
-	if err != nil {
-		http.Error(w, "Unauthorized", 401)
-		return
-	}
-	userID, ok := verifyCookie(cookie.Value)
+	userID, ok := h.authenticateUser(r)
 	if !ok {
-		http.Error(w, "Unauthorized", 401)
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusUnauthorized)
+		w.Write([]byte(`{"error":"Unauthorized"}`))
 		return
 	}
 
@@ -272,14 +283,11 @@ func (h *WebHandler) APIAdminKeysRevoke(w http.ResponseWriter, r *http.Request) 
 		http.Error(w, "Method not allowed", 405)
 		return
 	}
-	cookie, err := r.Cookie("session")
-	if err != nil {
-		http.Error(w, "Unauthorized", 401)
-		return
-	}
-	userID, ok := verifyCookie(cookie.Value)
+	userID, ok := h.authenticateUser(r)
 	if !ok {
-		http.Error(w, "Unauthorized", 401)
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusUnauthorized)
+		w.Write([]byte(`{"error":"Unauthorized"}`))
 		return
 	}
 
@@ -330,14 +338,11 @@ func (h *WebHandler) APIAdminPassword(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Method not allowed", 405)
 		return
 	}
-	cookie, err := r.Cookie("session")
-	if err != nil {
-		http.Error(w, "Unauthorized", 401)
-		return
-	}
-	userID, ok := verifyCookie(cookie.Value)
+	userID, ok := h.authenticateUser(r)
 	if !ok {
-		http.Error(w, "Unauthorized", 401)
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusUnauthorized)
+		w.Write([]byte(`{"error":"Unauthorized"}`))
 		return
 	}
 
@@ -377,3 +382,60 @@ func (h *WebHandler) APIAdminPassword(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 }
+
+func (h *WebHandler) APIRESTLogin(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		w.Write([]byte(`{"error":"Method not allowed"}`))
+		return
+	}
+
+	var req struct {
+		Username string `json:"username"`
+		Password string `json:"password"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(`{"error":"Bad request - invalid JSON"}`))
+		return
+	}
+
+	if req.Username == "" || req.Password == "" {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(`{"error":"Username and password are required"}`))
+		return
+	}
+
+	u, err := h.DB.GetUserByUsername(req.Username)
+	if err != nil || u == nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusUnauthorized)
+		w.Write([]byte(`{"error":"Invalid credentials"}`))
+		return
+	}
+
+	match, err := security.ComparePassword(req.Password, u.PasswordHash)
+	if err != nil || !match {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusUnauthorized)
+		w.Write([]byte(`{"error":"Invalid credentials"}`))
+		return
+	}
+
+	token := signCookie(u.ID)
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"token": token,
+		"user": map[string]interface{}{
+			"id":       u.ID,
+			"username": u.Username,
+			"balance":  u.Balance,
+		},
+	})
+}
+
