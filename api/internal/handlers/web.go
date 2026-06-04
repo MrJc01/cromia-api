@@ -198,6 +198,7 @@ func (h *WebHandler) APIAdminMe(w http.ResponseWriter, r *http.Request) {
 		"id":       u.ID,
 		"username": u.Username,
 		"balance":  u.Balance,
+		"is_admin": u.IsAdmin,
 	})
 }
 
@@ -519,5 +520,173 @@ func (h *WebHandler) APIRESTRegister(w http.ResponseWriter, r *http.Request) {
 		},
 	})
 }
+
+func (h *WebHandler) APIAdminUsersList(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		w.Write([]byte(`{"error":"Method not allowed"}`))
+		return
+	}
+
+	userID, ok := h.authenticateUser(r)
+	if !ok {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusUnauthorized)
+		w.Write([]byte(`{"error":"Unauthorized"}`))
+		return
+	}
+
+	u, err := h.DB.GetUserByID(userID)
+	if err != nil || u == nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusUnauthorized)
+		w.Write([]byte(`{"error":"Unauthorized"}`))
+		return
+	}
+
+	if !u.IsAdmin {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusForbidden)
+		w.Write([]byte(`{"error":"Forbidden - Admin only"}`))
+		return
+	}
+
+	users, err := h.DB.ListUsers()
+	if err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(`{"error":"Failed to retrieve users"}`))
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"users": users,
+	})
+}
+
+func (h *WebHandler) APIAdminUsersCredits(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		w.Write([]byte(`{"error":"Method not allowed"}`))
+		return
+	}
+
+	userID, ok := h.authenticateUser(r)
+	if !ok {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusUnauthorized)
+		w.Write([]byte(`{"error":"Unauthorized"}`))
+		return
+	}
+
+	u, err := h.DB.GetUserByID(userID)
+	if err != nil || u == nil || !u.IsAdmin {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusForbidden)
+		w.Write([]byte(`{"error":"Forbidden - Admin only"}`))
+		return
+	}
+
+	var req struct {
+		UserID int     `json:"user_id"`
+		Amount float64 `json:"amount"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(`{"error":"Invalid request payload"}`))
+		return
+	}
+
+	targetUser, err := h.DB.GetUserByID(req.UserID)
+	if err != nil || targetUser == nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusNotFound)
+		w.Write([]byte(`{"error":"Target user not found"}`))
+		return
+	}
+
+	err = h.DB.AddBalance(req.UserID, req.Amount)
+	if err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(`{"error":"Failed to adjust balance"}`))
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte(`{"status":"success"}`))
+}
+
+func (h *WebHandler) APIAdminUsersToggleAdmin(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		w.Write([]byte(`{"error":"Method not allowed"}`))
+		return
+	}
+
+	userID, ok := h.authenticateUser(r)
+	if !ok {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusUnauthorized)
+		w.Write([]byte(`{"error":"Unauthorized"}`))
+		return
+	}
+
+	u, err := h.DB.GetUserByID(userID)
+	if err != nil || u == nil || !u.IsAdmin {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusForbidden)
+		w.Write([]byte(`{"error":"Forbidden - Admin only"}`))
+		return
+	}
+
+	var req struct {
+		UserID  int  `json:"user_id"`
+		IsAdmin bool `json:"is_admin"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(`{"error":"Invalid request payload"}`))
+		return
+	}
+
+	targetUser, err := h.DB.GetUserByID(req.UserID)
+	if err != nil || targetUser == nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusNotFound)
+		w.Write([]byte(`{"error":"Target user not found"}`))
+		return
+	}
+
+	// Prevent self-demotion to ensure at least one admin remains!
+	if req.UserID == userID && !req.IsAdmin {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(`{"error":"Cannot remove admin privileges from yourself"}`))
+		return
+	}
+
+	err = h.DB.SetAdminStatus(req.UserID, req.IsAdmin)
+	if err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(`{"error":"Failed to update admin status"}`))
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte(`{"status":"success"}`))
+}
+
 
 

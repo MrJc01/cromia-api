@@ -102,6 +102,7 @@ func (d *sqlDB) migrate() error {
 	alterQueries := []string{
 		`ALTER TABLE provider_models ADD COLUMN prompt_cost REAL NOT NULL DEFAULT 0.0`,
 		`ALTER TABLE provider_models ADD COLUMN completion_cost REAL NOT NULL DEFAULT 0.0`,
+		`ALTER TABLE users ADD COLUMN is_admin INTEGER NOT NULL DEFAULT 0`,
 	}
 	for _, q := range alterQueries {
 		d.conn.Exec(q) // Ignora erro se a coluna já existir

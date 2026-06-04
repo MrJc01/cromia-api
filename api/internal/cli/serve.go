@@ -56,6 +56,9 @@ func RunServe(args []string) {
 	mux.HandleFunc("POST /v1/admin/keys", webHandler.APIAdminKeysCreate)
 	mux.HandleFunc("DELETE /v1/admin/keys/{id}", webHandler.APIAdminKeysRevoke)
 	mux.HandleFunc("POST /v1/admin/password", webHandler.APIAdminPassword)
+	mux.HandleFunc("GET /v1/admin/users/list", webHandler.APIAdminUsersList)
+	mux.HandleFunc("POST /v1/admin/users/credits", webHandler.APIAdminUsersCredits)
+	mux.HandleFunc("POST /v1/admin/users/toggle-admin", webHandler.APIAdminUsersToggleAdmin)
 	mux.HandleFunc("POST /v1/auth/login", webHandler.APIRESTLogin)
 	mux.HandleFunc("POST /v1/auth/register", webHandler.APIRESTRegister)
 

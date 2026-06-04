@@ -15,9 +15,9 @@ func (d *sqlDB) CreateUser(username, passwordHash string, initialBalance float64
 func (d *sqlDB) GetUserByUsername(username string) (*User, error) {
 	var u User
 	err := d.conn.QueryRow(
-		"SELECT id, username, password_hash, balance, created_at FROM users WHERE username = ?",
+		"SELECT id, username, password_hash, balance, is_admin, created_at FROM users WHERE username = ?",
 		username,
-	).Scan(&u.ID, &u.Username, &u.PasswordHash, &u.Balance, &u.CreatedAt)
+	).Scan(&u.ID, &u.Username, &u.PasswordHash, &u.Balance, &u.IsAdmin, &u.CreatedAt)
 	if err != nil {
 		return nil, err
 	}
@@ -27,9 +27,9 @@ func (d *sqlDB) GetUserByUsername(username string) (*User, error) {
 func (d *sqlDB) GetUserByID(id int) (*User, error) {
 	var u User
 	err := d.conn.QueryRow(
-		"SELECT id, username, password_hash, balance, created_at FROM users WHERE id = ?",
+		"SELECT id, username, password_hash, balance, is_admin, created_at FROM users WHERE id = ?",
 		id,
-	).Scan(&u.ID, &u.Username, &u.PasswordHash, &u.Balance, &u.CreatedAt)
+	).Scan(&u.ID, &u.Username, &u.PasswordHash, &u.Balance, &u.IsAdmin, &u.CreatedAt)
 	if err != nil {
 		return nil, err
 	}
@@ -52,7 +52,7 @@ func (d *sqlDB) DeductBalance(userID int, amount float64) error {
 }
 
 func (d *sqlDB) ListUsers() ([]User, error) {
-	rows, err := d.conn.Query("SELECT id, username, password_hash, balance, created_at FROM users")
+	rows, err := d.conn.Query("SELECT id, username, password_hash, balance, is_admin, created_at FROM users")
 	if err != nil {
 		return nil, err
 	}
@@ -61,10 +61,19 @@ func (d *sqlDB) ListUsers() ([]User, error) {
 	var users []User
 	for rows.Next() {
 		var u User
-		if err := rows.Scan(&u.ID, &u.Username, &u.PasswordHash, &u.Balance, &u.CreatedAt); err != nil {
+		if err := rows.Scan(&u.ID, &u.Username, &u.PasswordHash, &u.Balance, &u.IsAdmin, &u.CreatedAt); err != nil {
 			continue
 		}
 		users = append(users, u)
 	}
 	return users, nil
+}
+
+func (d *sqlDB) SetAdminStatus(userID int, isAdmin bool) error {
+	val := 0
+	if isAdmin {
+		val = 1
+	}
+	_, err := d.conn.Exec("UPDATE users SET is_admin = ? WHERE id = ?", val, userID)
+	return err
 }

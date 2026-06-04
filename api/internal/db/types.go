@@ -5,6 +5,7 @@ type User struct {
 	Username     string  `json:"username"`
 	PasswordHash string  `json:"-"`
 	Balance      float64 `json:"balance"`
+	IsAdmin      bool    `json:"is_admin"`
 	CreatedAt    string  `json:"created_at"`
 }
 
@@ -49,6 +50,7 @@ type DB interface {
 	AddBalance(userID int, amount float64) error
 	DeductBalance(userID int, amount float64) error
 	ListUsers() ([]User, error)
+	SetAdminStatus(userID int, isAdmin bool) error
 
 	// API Keys
 	CreateKey(userID int, name, keyHash string) (int, error)
