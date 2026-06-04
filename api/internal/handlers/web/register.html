@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Criar Conta | CromIA</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-gray-950 text-white flex flex-col h-screen relative overflow-hidden">
+    
+    <!-- Background Effects -->
+    <div class="absolute top-0 right-0 w-[500px] h-[500px] bg-blue-600/10 rounded-full blur-[100px] pointer-events-none"></div>
+    <div class="absolute bottom-0 left-0 w-[500px] h-[500px] bg-emerald-600/10 rounded-full blur-[100px] pointer-events-none"></div>
+
+    <nav class="p-6 relative z-10">
+        <a href="/login" class="text-gray-400 hover:text-white transition-colors text-sm font-medium flex items-center gap-2">
+            ← Voltar para o Login
+        </a>
+    </nav>
+
+    <div class="flex-grow flex items-center justify-center relative z-10 px-4">
+        <div class="bg-gray-900/80 backdrop-blur-xl p-10 rounded-2xl shadow-[0_0_40px_rgba(0,0,0,0.5)] w-full max-w-md border border-gray-800">
+            
+            <!-- Registration Form Area -->
+            <div id="form-container">
+                <div class="text-center mb-8">
+                    <div class="inline-block p-3 rounded-full bg-emerald-500/10 border border-emerald-500/20 mb-4">
+                        <svg class="w-8 h-8 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+                        </svg>
+                    </div>
+                    <h1 class="text-3xl font-bold mb-2">Criar Nova Conta</h1>
+                    <p class="text-gray-400 text-sm">Cadastre-se para começar a usar o gateway de IA.</p>
+                </div>
+                
+                <form id="register-form" class="space-y-5">
+                    <div id="error-message" class="hidden bg-red-500/10 border border-red-500/20 text-red-400 p-3 rounded-lg text-sm text-center"></div>
+                    
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2" for="username">Usuário</label>
+                        <input type="text" id="username" name="username" required minlength="3"
+                            class="w-full px-4 py-3 bg-gray-950/50 border border-gray-700 rounded-xl focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all text-white placeholder-gray-500"
+                            placeholder="Ex: pedrodev">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2" for="password">Senha</label>
+                        <input type="password" id="password" name="password" required minlength="6"
+                            class="w-full px-4 py-3 bg-gray-950/50 border border-gray-700 rounded-xl focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all text-white placeholder-gray-500"
+                            placeholder="Mínimo 6 caracteres">
+                    </div>
+                    <button type="submit" class="w-full py-3.5 bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 rounded-xl font-bold text-white shadow-lg shadow-emerald-500/25 transition-all transform hover:-translate-y-0.5">
+                        Criar Minha Conta
+                    </button>
+                </form>
+                
+                <p class="text-center text-xs text-gray-400 mt-8">
+                    Já tem uma conta? <a href="/login" class="text-emerald-400 hover:underline">Faça login aqui</a>.
+                </p>
+            </div>
+
+            <!-- Success Message Area (Hidden initially) -->
+            <div id="success-container" class="hidden text-center">
+                <div class="inline-block p-3 rounded-full bg-blue-500/10 border border-blue-500/20 mb-4">
+                    <svg class="w-12 h-12 text-blue-400 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                </div>
+                <h1 class="text-3xl font-bold mb-4 text-white">Conta Criada!</h1>
+                
+                <div class="bg-blue-500/10 border border-blue-500/20 p-5 rounded-xl text-left text-sm leading-relaxed text-gray-300 mb-6">
+                    <p class="mb-3 font-semibold text-blue-400">Saldo Inicial: $0.00</p>
+                    <p id="success-msg-text"></p>
+                </div>
+
+                <a href="/login" class="inline-block w-full py-3.5 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 rounded-xl font-bold text-white shadow-lg shadow-blue-500/25 transition-all transform hover:-translate-y-0.5">
+                    Ir para o Login
+                </a>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('register-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const usernameInput = document.getElementById('username');
+            const passwordInput = document.getElementById('password');
+            const errorDiv = document.getElementById('error-message');
+
+            errorDiv.classList.add('hidden');
+
+            try {
+                const response = await fetch('/v1/auth/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        username: usernameInput.value,
+                        password: passwordInput.value
+                    })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Erro ao realizar cadastro');
+                }
+
+                // Show success block
+                document.getElementById('success-msg-text').innerText = data.message;
+                document.getElementById('form-container').classList.add('hidden');
+                document.getElementById('success-container').classList.remove('hidden');
+
+            } catch (err) {
+                errorDiv.innerText = err.message;
+                errorDiv.classList.remove('hidden');
+            }
+        });
+    </script>
+</body>
+</html>

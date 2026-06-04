@@ -46,6 +46,7 @@ func RunServe(args []string) {
 	mux.HandleFunc("/", webHandler.ServeHome)
 	mux.HandleFunc("/dashboard", webHandler.ServeDashboard)
 	mux.HandleFunc("GET /login", webHandler.ServeLogin)
+	mux.HandleFunc("GET /register", webHandler.ServeRegister)
 	mux.HandleFunc("POST /login", webHandler.Login)
 	mux.HandleFunc("/docs", webHandler.ServeDocs)
 	mux.HandleFunc("/logout", webHandler.Logout)
@@ -56,6 +57,7 @@ func RunServe(args []string) {
 	mux.HandleFunc("DELETE /v1/admin/keys/{id}", webHandler.APIAdminKeysRevoke)
 	mux.HandleFunc("POST /v1/admin/password", webHandler.APIAdminPassword)
 	mux.HandleFunc("POST /v1/auth/login", webHandler.APIRESTLogin)
+	mux.HandleFunc("POST /v1/auth/register", webHandler.APIRESTRegister)
 
 	// API Routes
 	chatPipe := middleware.AuthMiddleware(database,

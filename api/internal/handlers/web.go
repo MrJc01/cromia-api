@@ -3,6 +3,7 @@ package handlers
 import (
 	"crypto/hmac"
 	"crypto/sha256"
+	"database/sql"
 	"cromia/api/internal/db"
 	"cromia/api/internal/security"
 	"encoding/hex"
@@ -90,6 +91,17 @@ func (h *WebHandler) ServeLogin(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html")
 	w.Write(content)
 }
+
+func (h *WebHandler) ServeRegister(w http.ResponseWriter, r *http.Request) {
+	content, err := webFS.ReadFile("web/register.html")
+	if err != nil {
+		http.Error(w, "Not found", 404)
+		return
+	}
+	w.Header().Set("Content-Type", "text/html")
+	w.Write(content)
+}
+
 
 func (h *WebHandler) ServeDocs(w http.ResponseWriter, r *http.Request) {
 	content, err := webFS.ReadFile("web/docs.html")
@@ -438,4 +450,74 @@ func (h *WebHandler) APIRESTLogin(w http.ResponseWriter, r *http.Request) {
 		},
 	})
 }
+
+func (h *WebHandler) APIRESTRegister(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		w.Write([]byte(`{"error":"Method not allowed"}`))
+		return
+	}
+
+	var req struct {
+		Username string `json:"username"`
+		Password string `json:"password"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(`{"error":"Bad request - invalid JSON"}`))
+		return
+	}
+
+	if len(req.Username) < 3 || len(req.Password) < 6 {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(`{"error":"Username must be at least 3 characters and password at least 6 characters"}`))
+		return
+	}
+
+	u, err := h.DB.GetUserByUsername(req.Username)
+	if err == nil && u != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusConflict)
+		w.Write([]byte(`{"error":"Username already taken"}`))
+		return
+	} else if err != nil && err != sql.ErrNoRows {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(`{"error":"Database error"}`))
+		return
+	}
+
+	hash, err := security.HashPassword(req.Password)
+	if err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(`{"error":"Failed to process password"}`))
+		return
+	}
+
+	id, err := h.DB.CreateUser(req.Username, hash, 0.0)
+	if err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(`{"error":"Failed to create user"}`))
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"status":  "success",
+		"message": "User registered successfully with zero balance. To add credits, please contact one of the CROM Guardians (mrj.crom@gmail.com).",
+		"user": map[string]interface{}{
+			"id":       id,
+			"username": req.Username,
+			"balance":  0.0,
+		},
+	})
+}
+
 

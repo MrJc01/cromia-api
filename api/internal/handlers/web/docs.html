@@ -94,6 +94,31 @@
 
             <div class="bg-[#0d1117] border border-gray-800 rounded-xl overflow-hidden mb-6">
                 <div class="flex items-center px-4 py-2 border-b border-gray-800 bg-gray-900/50">
+                    <span class="text-xs font-bold bg-blue-500/20 text-blue-400 px-2 py-1 rounded mr-3">POST</span>
+                    <code class="text-sm text-gray-300">/v1/auth/register</code>
+                </div>
+                <div class="p-6 text-sm">
+                    <p class="text-gray-400 mb-4">Cadastra um novo usuário no ecossistema com <strong>saldo inicial zero (0.0)</strong>.</p>
+                    <p class="text-gray-500 font-bold mb-2">Exemplo de Payload (JSON):</p>
+                    <pre class="bg-gray-950 p-4 rounded border border-gray-800 text-blue-300 mb-4"><code>{
+  "username": "novousuario",
+  "password": "SenhaSegura123"
+}</code></pre>
+                    <p class="text-gray-500 font-bold mb-2">Exemplo de Resposta (JSON):</p>
+                    <pre class="bg-gray-950 p-4 rounded border border-gray-800 text-emerald-300"><code>{
+  "status": "success",
+  "message": "User registered successfully with zero balance. To add credits, please contact one of the CROM Guardians (mrj.crom@gmail.com).",
+  "user": {
+    "id": 42,
+    "username": "novousuario",
+    "balance": 0.0
+  }
+}</code></pre>
+                </div>
+            </div>
+
+            <div class="bg-[#0d1117] border border-gray-800 rounded-xl overflow-hidden mb-6">
+                <div class="flex items-center px-4 py-2 border-b border-gray-800 bg-gray-900/50">
                     <span class="text-xs font-bold bg-emerald-500/20 text-emerald-400 px-2 py-1 rounded mr-3">GET</span>
                     <code class="text-sm text-gray-300">/v1/admin/me</code>
                 </div>
