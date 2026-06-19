@@ -27,6 +27,8 @@ echo "[2/3] Rodando testes de CLI (Offline)..."
 
 export OPENROUTER_BASE_URL="http://localhost:8081"
 export DEEPSEEK_BASE_URL="http://localhost:8081"
+export OPENROUTER_API_KEY="mock-key"
+export DEEPSEEK_API_KEY="mock-key"
 
 echo "[3/3] Subindo mockserver..."
 ./mockserver > test_mockserver.log 2>&1 &
