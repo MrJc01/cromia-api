@@ -1,5 +1,5 @@
 # CromIA API - Tabela de Preços e Comparativo
-Data da simulação: sex 19 jun 2026 15:14:55 -03
+Data da simulação: sáb 20 jun 2026 03:38:40 -03
 
 Abaixo está a tabela de cobrança gerada diretamente do Gateway, listando o custo real do modelo no Provedor na nuvem, o valor na CromIA (após a sua margem de lucro configurada), e a estimativa de Lucro Líquido para cada 1 Milhão (1M) de tokens processados.
 

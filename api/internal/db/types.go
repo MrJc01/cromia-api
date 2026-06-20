@@ -58,6 +58,7 @@ type DB interface {
 	GetUserKeys(userID int) ([]APIKey, error)
 	GetKeyByHash(keyHash string) (*APIKey, error)
 	RevokeKey(id int) error
+	RegisterSessionKey(userID int, keyHash string) error
 
 	// Provider Models
 	EnableModel(provider, model string, multiplier float64) error

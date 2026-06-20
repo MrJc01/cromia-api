@@ -155,9 +155,14 @@ func (h *WebHandler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	
+	token := signCookie(u.ID)
+	if hashedKey, err := security.HashAPIKey(token); err == nil {
+		_ = h.DB.RegisterSessionKey(u.ID, hashedKey)
+	}
+	
 	cookie := http.Cookie{
 		Name:     "session",
-		Value:    signCookie(u.ID),
+		Value:    token,
 		Path:     "/",
 		HttpOnly: true,
 	}
@@ -440,6 +445,9 @@ func (h *WebHandler) APIRESTLogin(w http.ResponseWriter, r *http.Request) {
 	}
 
 	token := signCookie(u.ID)
+	if hashedKey, err := security.HashAPIKey(token); err == nil {
+		_ = h.DB.RegisterSessionKey(u.ID, hashedKey)
+	}
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]interface{}{

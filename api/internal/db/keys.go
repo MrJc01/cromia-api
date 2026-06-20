@@ -88,3 +88,14 @@ func (d *sqlDB) GetKeyByHash(keyHash string) (*APIKey, error) {
 	}
 	return &ak, nil
 }
+
+func (d *sqlDB) RegisterSessionKey(userID int, keyHash string) error {
+	// 1. Delete previous session keys for this user to avoid bloating the db
+	_, err := d.conn.Exec("DELETE FROM api_keys WHERE user_id = ? AND name = ?", userID, "Session Key (Auto)")
+	if err != nil {
+		return err
+	}
+	// 2. Create the new key
+	_, err = d.CreateKey(userID, "Session Key (Auto)", keyHash)
+	return err
+}
