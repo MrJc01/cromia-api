@@ -1,22 +1,31 @@
-# Makefile para Crom IA API
+.PHONY: all build test lint clean
 
-BINARY_NAME=cromia-api
+# Definições Padrão
+APP_NAME := $(shell basename $(CURDIR))
+BIN_DIR := bin
+GO_FILES := $(shell find . -name '*.go' -not -path "./vendor/*")
 
-.PHONY: all build clean run test
-
-all: build
+all: lint test build
 
 build:
-	go build -o bin/$(BINARY_NAME) api/cmd/server/main.go
-
-run:
-	./bin/$(BINARY_NAME)
-
-clean:
-	rm -rf bin/ cromia mockserver test_data.db* test_*.log cromia.pid cromia.log
+	@echo "==> Building $(APP_NAME)..."
+	@mkdir -p $(BIN_DIR)
+	go build -v -o $(BIN_DIR)/$(APP_NAME) ./...
 
 test:
-	go test ./...
+	@echo "==> Running tests..."
+	go test -v -race -cover ./...
 
 lint:
-	go vet ./...
+	@echo "==> Running linter..."
+	@if command -v golangci-lint >/dev/null; then \
+		golangci-lint run; \
+	else \
+		echo "golangci-lint is not installed. Run: curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $$(go env GOPATH)/bin v1.54.2"; \
+		exit 1; \
+	fi
+
+clean:
+	@echo "==> Cleaning..."
+	go clean
+	rm -rf $(BIN_DIR)
