@@ -105,7 +105,8 @@ func RunServe(args []string) {
 		fmt.Fprintf(w, `{"status":"ok","version":"1.2.0"}`)
 	})
 
-	mainHandler := middleware.CORSMiddleware(middleware.LoggingMiddleware(mux))
+	globalLimiter := middleware.NewIPRateLimiter(5, 20) // 5 req/s, burst de 20
+	mainHandler := middleware.CORSMiddleware(middleware.LoggingMiddleware(globalLimiter.RateLimit(mux)))
 
 	// Separation logic placeholder
 	if *apiPort != "" && *webPort != "" {
