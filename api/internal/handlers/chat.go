@@ -78,6 +78,15 @@ func (h *ChatHandler) Completions(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	user := r.Context().Value(middleware.UserContextKey).(*db.User)
+	apiKey := r.Context().Value(middleware.APIKeyContextKey).(*db.APIKey)
+
+	isFreeModel := strings.HasSuffix(matchedModel.ModelName, ":free")
+	if user.Balance <= 0 && !isFreeModel {
+		utils.JSONError(w, "Payment Required: Insufficient balance. Please add credits to use paid models.", http.StatusPaymentRequired)
+		return
+	}
+
 	proxyReq, err := http.NewRequest("POST", providerURL, bytes.NewBuffer(bodyBytes))
 	if err != nil {
 		utils.JSONError(w, "failed to create upstream request", http.StatusInternalServerError)
@@ -94,9 +103,6 @@ func (h *ChatHandler) Completions(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer resp.Body.Close()
-
-	user := r.Context().Value(middleware.UserContextKey).(*db.User)
-	apiKey := r.Context().Value(middleware.APIKeyContextKey).(*db.APIKey)
 
 	if !req.Stream {
 		w.Header().Set("Content-Type", resp.Header.Get("Content-Type"))
@@ -166,9 +172,15 @@ func (h *ChatHandler) chargeUsage(u openaiUsage, user *db.User, apiKey *db.APIKe
 	}
 
 	var cost float64
+	isFreeModel := strings.HasSuffix(pm.ModelName, ":free")
+
 	if pm.PromptCost == 0 && pm.CompletionCost == 0 {
 		// Fallback se o preço não foi sincronizado ainda
-		cost = float64(u.TotalTokens) * 0.0001 * pm.CostMultiplier
+		if isFreeModel {
+			cost = 0 // Modelo garantidamente gratuito
+		} else {
+			cost = float64(u.TotalTokens) * 0.0001 * pm.CostMultiplier
+		}
 	} else {
 		// Custo Real em Dólares
 		dollarCost := float64(u.PromptTokens)*pm.PromptCost + float64(u.CompletionTokens)*pm.CompletionCost
